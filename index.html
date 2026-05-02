@@ -1,20 +1,133 @@
 <!DOCTYPE html>
+
 <html>
 <head>
   <title>AI Course Assistant</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f0f2f5;
+    }
+
+```
+/* Floating button */
+.chat-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #007bff;
+  color: white;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* Chat box */
+.chat-box {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  width: 320px;
+  height: 420px;
+  background: white;
+  border-radius: 10px;
+  display: none;
+  flex-direction: column;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+.chat-header {
+  background: #007bff;
+  color: white;
+  padding: 10px;
+  border-radius: 10px 10px 0 0;
+}
+
+.chat-body {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+}
+
+.message {
+  margin: 8px 0;
+  padding: 8px;
+  border-radius: 6px;
+  max-width: 80%;
+}
+
+.user {
+  background: #d1e7dd;
+  align-self: flex-end;
+}
+
+.bot {
+  background: #e2e3e5;
+}
+
+.chat-footer {
+  display: flex;
+  border-top: 1px solid #ccc;
+}
+
+.chat-footer input {
+  flex: 1;
+  padding: 10px;
+  border: none;
+}
+
+.chat-footer button {
+  padding: 10px;
+  border: none;
+  background: #007bff;
+  color: white;
+}
+```
+
+  </style>
 </head>
+
 <body>
 
-<h1>Course Recommendation Assistant</h1>
+<!-- Floating Button -->
 
-<input id="input" placeholder="Type your question..." />
-<button onclick="sendMessage()">Send</button>
+<div class="chat-btn" onclick="toggleChat()">💬</div>
 
-<p id="response"></p>
+<!-- Chat Box -->
+
+<div class="chat-box" id="chatBox">
+  <div class="chat-header">AI Assistant</div>
+  <div class="chat-body" id="chat"></div>
+  <div class="chat-footer">
+    <input id="input" placeholder="Type..." />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+</div>
 
 <script>
+function toggleChat() {
+  const box = document.getElementById("chatBox");
+  box.style.display = box.style.display === "flex" ? "none" : "flex";
+}
+
 async function sendMessage() {
-  const input = document.getElementById("input").value;
+  const inputBox = document.getElementById("input");
+  const chat = document.getElementById("chat");
+  const text = inputBox.value;
+
+  if (!text) return;
+
+  chat.innerHTML += `<div class="message user">${text}</div>`;
+  inputBox.value = "";
+
+  // Typing indicator
+  chat.innerHTML += `<div class="message bot" id="typing">Typing...</div>`;
+  chat.scrollTop = chat.scrollHeight;
 
   const res = await fetch( "https://cloud.flowiseai.com/api/v1/prediction/1de7fac7-9c55-4c32-8076-0eb18bedfe6a", {
     method: "POST",
@@ -22,13 +135,21 @@ async function sendMessage() {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      question: input
+      question: text
     })
   });
 
   const data = await res.json();
-  document.getElementById("response").innerText = data.text;
+
+  document.getElementById("typing").remove();
+  chat.innerHTML += `<div class="message bot">${data.text}</div>`;
+  chat.scrollTop = chat.scrollHeight;
 }
+
+// Enter key support
+document.getElementById("input").addEventListener("keypress", function(e) {
+  if (e.key === "Enter") sendMessage();
+});
 </script>
 
 </body>
