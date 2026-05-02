@@ -13,11 +13,50 @@ body {
   color:white;
 }
 
+/* HERO */
 .hero {
-  padding:80px;
+  background:linear-gradient(rgba(0,0,0,0.6),rgba(0,0,0,0.6)),
+  url('https://images.unsplash.com/photo-1519389950473-47ba0277781c');
+  background-size:cover;
+  padding:100px 20px;
   text-align:center;
 }
+.hero h1 {font-size:42px;}
+.hero p {opacity:0.8;}
 
+/* COURSE CARDS */
+.cards {
+  display:flex;
+  flex-wrap:wrap;
+  gap:20px;
+  justify-content:center;
+  padding:40px;
+}
+.card {
+  width:260px;
+  background:white;
+  color:black;
+  border-radius:10px;
+  overflow:hidden;
+}
+.card img {width:100%;}
+.card div {padding:10px;}
+
+/* STATS */
+.stats {
+  text-align:center;
+  padding:40px;
+  background:#111;
+}
+
+/* FOOTER */
+.footer {
+  text-align:center;
+  padding:20px;
+  background:black;
+}
+
+/* CHAT */
 .chat-btn {
   position:fixed;
   bottom:20px;
@@ -53,18 +92,17 @@ body {
 .message {
   margin:5px 0;
 }
+
 .user {text-align:right;}
 .bot {text-align:left;}
 
 .chat-footer {
   display:flex;
 }
-
 .chat-footer input {
   flex:1;
   padding:10px;
 }
-
 .chat-footer button {
   padding:10px;
 }
@@ -74,28 +112,70 @@ body {
 
 <body>
 
+<!-- HERO -->
+
 <div class="hero">
   <h1>🎓 AI Course Assistant</h1>
-  <p>Voice-enabled smart learning</p>
+  <p>Find the best courses instantly with AI</p>
 </div>
+
+<!-- CARDS -->
+
+<div class="cards">
+  <div class="card">
+    <img src="https://images.unsplash.com/photo-1555949963-aa79dcee981c">
+    <div>
+      <h3>Machine Learning</h3>
+      <p>⭐ 4.8 | ₹999</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <img src="https://images.unsplash.com/photo-1518770660439-4636190af475">
+    <div>
+      <h3>Web Development</h3>
+      <p>⭐ 4.7 | ₹799</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <img src="https://images.unsplash.com/photo-1526378722484-bd91ca387e72">
+    <div>
+      <h3>Data Science</h3>
+      <p>⭐ 4.9 | ₹1199</p>
+    </div>
+  </div>
+</div>
+
+<!-- STATS -->
+
+<div class="stats">
+  <h2>Trusted by Learners</h2>
+  <p>👥 10,000+ Users</p>
+  <p>📚 500+ Courses</p>
+</div>
+
+<!-- FOOTER -->
+
+<div class="footer">
+  <p>Made by Paras 🚀</p>
+</div>
+
+<!-- CHAT -->
 
 <div class="chat-btn" onclick="toggleChat()">💬</div>
 
 <div class="chat-box" id="chatBox">
   <div class="chat-body" id="chat"></div>
-
   <div class="chat-footer">
     <input id="input" placeholder="Ask..." />
     <button onclick="sendMessage()">➤</button>
-    <button onclick="startVoice()">🎤</button>
-    <button onclick="toggleVoice()">🔊</button>
-    <button onclick="stopVoice()">🛑</button>
+    <button onclick="voice()">🎤</button>
   </div>
 </div>
 
 <script>
-const API =  "https://cloud.flowiseai.com/api/v1/prediction/1de7fac7-9c55-4c32-8076-0eb18bedfe6a";
-let voiceEnabled = true;
+const API = "YOUR_FLOWISE_API_URL";
 
 function toggleChat(){
   const box=document.getElementById("chatBox");
@@ -108,7 +188,6 @@ function add(role,text){
   chat.scrollTop=chat.scrollHeight;
 }
 
-// SEND MESSAGE
 async function sendMessage(){
   const input=document.getElementById("input");
   const text=input.value;
@@ -119,61 +198,28 @@ async function sendMessage(){
 
   add("bot","Typing...");
 
-  try{
-    const res=await fetch(API,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({question:text})
-    });
+  const res=await fetch(API,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({question:text})
+  });
 
-    const data=await res.json();
-    document.getElementById("chat").lastChild.remove();
-    add("bot",data.text);
+  const data=await res.json();
+  document.getElementById("chat").lastChild.remove();
+  add("bot",data.text);
 
-    // VOICE OUTPUT
-    if(voiceEnabled){
-      const shortText = data.text.slice(0,300);
-      speechSynthesis.cancel();
-      speechSynthesis.speak(new SpeechSynthesisUtterance(shortText));
-    }
-
-  }catch(e){
-    add("bot","Error: API not responding");
-  }
+  speechSynthesis.speak(new SpeechSynthesisUtterance(data.text));
 }
 
-// VOICE INPUT
-function startVoice(){
-  const input=document.getElementById("input");
-  input.placeholder="🎤 Listening...";
-
+function voice(){
   const rec=new (window.SpeechRecognition||window.webkitSpeechRecognition)();
-
   rec.onresult=e=>{
-    input.placeholder="Ask...";
-    input.value=e.results[0][0].transcript;
+    document.getElementById("input").value=e.results[0][0].transcript;
     sendMessage();
   };
-
-  rec.onerror=()=>{
-    input.placeholder="Mic error";
-  };
-
   rec.start();
 }
 
-// STOP VOICE
-function stopVoice(){
-  speechSynthesis.cancel();
-}
-
-// TOGGLE VOICE
-function toggleVoice(){
-  voiceEnabled=!voiceEnabled;
-  alert("Voice " + (voiceEnabled?"ON":"OFF"));
-}
-
-// ENTER KEY
 document.getElementById("input").addEventListener("keypress",e=>{
   if(e.key==="Enter") sendMessage();
 });
