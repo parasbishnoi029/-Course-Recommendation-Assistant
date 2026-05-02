@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AI Course Assistant</title>
+</head>
+<body>
+
+<h1>Course Recommendation Assistant</h1>
+
+<input id="input" placeholder="Type your question..." />
+<button onclick="sendMessage()">Send</button>
+
+<p id="response"></p>
+
+<script>
+async function sendMessage() {
+  const input = document.getElementById("input").value;
+
+  const res = await fetch( "https://cloud.flowiseai.com/api/v1/prediction/1de7fac7-9c55-4c32-8076-0eb18bedfe6a", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      question: input
+    })
+  });
+
+  const data = await res.json();
+  document.getElementById("response").innerText = data.text;
+}
+</script>
+
+</body>
+</html>
